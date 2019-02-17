@@ -1,19 +1,21 @@
 <?php
 
-// tcp socket服务端分需要实现以下几步
+// tcp socket客户端分需要实现以下几步
 // 1. 创建socket
-// 2. 使用socket连接指定的server IP:端口
-// 3. 监听socket
-// 4. 接收处理请求
-//      4.1 accept请求
-//      4.2 read数据 & write数据
-//      4.3 关闭accept的链接
-// 5.关闭socket(关闭服务)
+// 2. 使用socket连接指定的server IP:端口【可省略】
+// 3. connect服务端
+// 4. 发送请求，接收响应
+// 5. 关闭socket 连接
 
 // 创建连接
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if (!$socket) {
     die('create server fail:');
+}
+
+$ret = socket_bind($socket, '0.0.0.0', 80901);
+if (!$ret) {
+    die('bind server fail');
 }
 
 // 连接server
