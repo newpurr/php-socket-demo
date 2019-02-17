@@ -13,6 +13,7 @@ if (!$socket) {
     die('create server fail:');
 }
 
+// 绑定socket ip和端口
 $ret = socket_bind($socket, '0.0.0.0', 80901);
 if (!$ret) {
     die('bind server fail');
