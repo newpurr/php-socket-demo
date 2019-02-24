@@ -28,24 +28,6 @@ $connections = [];
 while (true) {
     $readfds = array_merge($connections, [$socket]);
     
-    /*
-     * socket_select是阻塞，有数据请求才处理，否则一直阻塞
-     * 此处$readfds会读取到当前活动的连接
-     * 比如执行socket_select前的数据如下(描述socket的资源ID)：
-     * $socket = Resource id #4
-     * $readfds = Array
-     *       (
-     *           [0] => Resource id #5 //客户端1
-     *           [1] => Resource id #4 //server绑定的端口的socket资源
-     *       )
-     * 调用socket_select之后，此时有两种情况：
-     * 情况一：如果是新客户端2连接，那么 $readfds = array([1] => Resource id #4),此时用于接收新客户端2连接
-     * 情况二：如果是客户端1(Resource id #5)发送消息，那么$readfds = array([1] => Resource id #5)，用户接收客户端1的数据
-     *
-     * 通过以上的描述可以看出，socket_select有两个作用，这也是实现了IO复用
-     * 1、新客户端来了，通过 Resource id #4 介绍新连接，如情况一
-     * 2、已有连接发送数据，那么实时切换到当前连接，接收数据，如情况二
-    */
     if (socket_select($readfds, $writefds, $exceptfds, 2)) {
         // 如果是当前服务端的监听连接
         if (in_array($socket, $readfds, true)) {
