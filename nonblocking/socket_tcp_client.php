@@ -14,13 +14,13 @@ if (!$socket) {
 }
 
 // 绑定socket ip和端口
-$ret = socket_bind($socket, '0.0.0.0', 80901);
-if (!$ret) {
-    die('bind server fail');
-}
+// $ret = socket_bind($socket, '0.0.0.0', 80902);
+// if (!$ret) {
+//     die('bind server fail');
+// }
 
 // 连接server
-$response = socket_connect($socket, '127.0.0.1', 8090);
+$response = socket_connect($socket, '127.0.0.1', 8093);
 if (!$response) {
     die('connect fail');
 }

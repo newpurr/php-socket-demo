@@ -1,50 +1,54 @@
 <?php
 
+// 非阻塞IO服务端
 // tcp socket服务端分需要实现以下几步
 // 1. 创建socket
-// 2. 给socket绑定IP:端口
-// 3. 监听socket
-// 4. 接收处理请求
-//      4.1 accept请求
+// 2. 设置socket为非阻塞模式
+// 3. 给socket绑定IP:端口
+// 4. 监听socket
+// 5. 接收处理请求
+//      4.1 accept请求【非阻塞】
 //      4.2 read数据 & write数据
 //      4.3 关闭accept的链接
-// 5.关闭socket(关闭服务)
+// 6.关闭socket(关闭服务)
 
-// 一、创建socket
-// 参数domain: AF_INET => IPv4 网络协议。TCP 和 UDP 都可使用此协议。
-// 参数type: SOCK_STREAM => 提供一个顺序化的、可靠的、全双工的、基于连接的字节流。支持数据传送流量控制机制。TCP 协议即基于这种流式套接字。
-// 参数protocol: SOL_TCP => tcp协议
+// 创建socket
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if (!$socket) {
     die('create server fail');
 }
 
-// 二、给套接字绑定ip+port
-$ret = socket_bind($socket, '0.0.0.0', 8090);
+// 设置socket为非阻塞模式
+socket_set_nonblock($socket);
+
+// 给套接字绑定ip+port
+$ret = socket_bind($socket, '0.0.0.0', 8093);
 if (!$ret) {
     die('bind server fail');
 }
 
-// 三、监听socket上的连接
+// 监听socket上的连接
 $ret = socket_listen($socket, 2);
 if (!$ret) {
     die('listen server fail');
 }
 echo "waiting client...\n";
 
-// 如下死循环实现的accept客户端的模式是同步阻塞的,
-// 也就是说这种模式只能处理一个连接,当一个连接未关闭时
-// 当前server完全不能处理其他请求
+
 while (true) {
-    // 四、阻塞等待accept客户端连接
+    // 非阻塞accept等待客户端连接
+    // 如果没有成功accept到客户端，accept将返回false,我们手动将进程睡眠2秒,然后再次accept(也可以不sleep,但是容易cpu100%)
+    // 如果accept成功,我们将连接交给onRecv处理
     $conn = socket_accept($socket);
+    var_dump($conn);
     if (!$conn) {
-        echo 'accept server fail';
+        echo 'accept server fail,但是我没被阻塞住哦';
+        sleep(2);
         continue;
     }
     
     echo "client connect succ.\n";
-    // 四、接收请求、返回响应、关闭连接
+    // 接收请求、返回响应、关闭连接
     onRecv($conn);
 }
 
