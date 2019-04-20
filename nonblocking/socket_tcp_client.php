@@ -42,7 +42,7 @@ while (true) {
         
         //解析单次消息，协议：换行符
         $pos = strpos($buffer, "\n");
-    
+        
         // 消息未读取完毕，继续读取
         if ($pos !== false) {
             break;

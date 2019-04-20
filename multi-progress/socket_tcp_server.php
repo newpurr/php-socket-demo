@@ -1,4 +1,5 @@
 <?php
+declare(ticks=1);
 
 // 阻塞IO服务端
 // tcp socket服务端分需要实现以下几步
@@ -21,7 +22,7 @@ if (!$socket) {
 }
 
 // 二、给套接字绑定ip+port
-$ret = socket_bind($socket, '0.0.0.0', 8090);
+$ret = socket_bind($socket, '0.0.0.0', 8091);
 if (!$ret) {
     die('bind server fail');
 }
@@ -33,12 +34,20 @@ if (!$ret) {
 }
 echo "waiting client...\n";
 
+// 回收子进程，防止子进程成为僵尸进程
+pcntl_signal(SIGCHLD, static function () {
+    echo 'SIGCHLD' . PHP_EOL;
+    
+    pcntl_waitpid(-1, $status, WNOHANG);
+});
+
 // 如下死循环实现的accept客户端的模式是同步阻塞的,
 // 也就是说这种模式只能处理一个连接,当一个连接未关闭时
 // 当前server完全不能处理其他请求
 while (true) {
     // 四、阻塞等待accept客户端连接
     $conn = socket_accept($socket);
+    var_dump($conn);
     if (!$conn) {
         echo 'accept server fail';
         continue;
@@ -75,7 +84,6 @@ function onRecv($conn)
     
     if ($pid) {
         // 父进程会得到子进程号，所以这里是父进程执行的逻辑
-        // pcntl_wait($status); //等待子进程中断，防止子进程成为僵尸进程。
         socket_close($conn);
     } else {
         //实际接收到的消息
@@ -106,7 +114,9 @@ function onRecv($conn)
             
                 //客户端主动端口连接,关闭本次连接
                 if ($recv === 'quit') {
-                    exit('server closed');
+                    //关闭本次连接
+                    echo "client closed\n";
+                    socket_close($conn);
                     break;
                 }
             
@@ -117,6 +127,8 @@ function onRecv($conn)
                 //清空消息，准备下一次read(连接不是单次处理完就关闭)
                 $recv = '';
             }
+    
         }
+        exit(1);
     }
 }
