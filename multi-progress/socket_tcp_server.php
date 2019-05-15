@@ -12,6 +12,11 @@ declare(ticks=1);
 //      4.3 关闭accept的链接
 // 5.关闭socket(关闭服务)
 
+// usage：
+//          1. php socket_tcp_server.php
+//          2. nc 127.0.0.1 8091
+//          3. netstat -anp | grep 8091      # 查看的网络状态
+
 // 一、创建socket
 // 参数domain: AF_INET => IPv4 网络协议。TCP 和 UDP 都可使用此协议。
 // 参数type: SOCK_STREAM => 提供一个顺序化的、可靠的、全双工的、基于连接的字节流。支持数据传送流量控制机制。TCP 协议即基于这种流式套接字。
