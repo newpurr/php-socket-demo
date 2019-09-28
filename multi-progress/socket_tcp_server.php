@@ -27,7 +27,8 @@ if (!$socket) {
 }
 
 // 二、给套接字绑定ip+port
-$ret = socket_bind($socket, '0.0.0.0', 8091);
+$port = 8091;
+$ret  = socket_bind($socket, '0.0.0.0', $port);
 if (!$ret) {
     die('bind server fail');
 }
@@ -37,7 +38,7 @@ $ret = socket_listen($socket, 2);
 if (!$ret) {
     die('listen server fail');
 }
-echo "waiting client...\n";
+echo "listening port: {$port}，waiting client...\n";
 
 // 回收子进程，防止子进程成为僵尸进程
 pcntl_signal(SIGCHLD, static function () {

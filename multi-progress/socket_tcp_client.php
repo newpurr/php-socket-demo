@@ -20,21 +20,23 @@ if (!$socket) {
 // }
 
 // 连接server
-$response = socket_connect($socket, '127.0.0.1', 8090);
+$response = socket_connect($socket, 'www.abcode.club', 80);
 if (!$response) {
     die('connect fail');
 }
 
 while (true) {
     // 发送消息
-    echo '请输入您要发送的内容' . PHP_EOL;
-    $str = trim(fgets(STDIN));
+    // echo '请输入您要发送的内容' . PHP_EOL;
+    
+    // $str = trim(fgets(STDIN));
+    $str = "GET / HTTP/1.1\r\nHost: www.abcode.club\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3\r\n\r\n";
     socket_write($socket, $str . "\n");
     
     // 读取消息
     $recv = '';
     while (true) {
-        $buffer = socket_read($socket, 1024);
+        $buffer = socket_read($socket, 102400);
         if ($buffer === false) {
             socket_close($socket);
             exit('read socket error' . "\n");
@@ -50,11 +52,16 @@ while (true) {
         
         $recv .= $buffer;
     }
-    echo "server response: {$buffer} \n";
+    // echo "server response: {$buffer} \n";
+    echo $recv;
+    ob_flush();
+    flush();
     
     if (strpos($buffer, 'bye')) {
         break;
     }
+    sleep(10);
+    $recv = '';
 }
 
 // 关闭连接

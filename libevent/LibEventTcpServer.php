@@ -6,7 +6,7 @@
 // phpize
 // ./configure
 // make && sudo make install
-// echo "extension=libevent.so" >> /usr/local/php7.2.2/etc/php.ini
+// cat "extension=libevent.so" >> /usr/local/php7.2.2/etc/php.ini
 
 
 /**

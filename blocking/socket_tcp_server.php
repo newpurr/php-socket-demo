@@ -1,5 +1,7 @@
 <?php
 
+include_once '../helper/helper.php';
+
 // 阻塞IO服务端
 // tcp socket服务端分需要实现以下几步
 // 1. 创建socket
@@ -20,8 +22,12 @@ if (!$socket) {
     die('create server fail');
 }
 
+fwrite(STDOUT,'请输入监听的端口：');
+$port = fgets(STDIN);
+
 // 二、给套接字绑定ip+port
-$ret = socket_bind($socket, '0.0.0.0', 8090);
+$port = (int)$port ? : 8090;
+$ret = socket_bind($socket, '0.0.0.0', $port);
 if (!$ret) {
     die('bind server fail');
 }
@@ -31,7 +37,7 @@ $ret = socket_listen($socket, 2);
 if (!$ret) {
     die('listen server fail');
 }
-echo "waiting client...\n";
+echo "listening port: {$port}，waiting client...\n";
 
 // 如下死循环实现的accept客户端的模式是同步阻塞的,
 // 也就是说这种模式只能处理一个连接,当一个连接未关闭时
@@ -44,16 +50,49 @@ while (true) {
         continue;
     }
     
-    echo "client connect succ.\n";
+    echo "client {$conn} connect succ.\n";
     // 四、接收请求、返回响应、关闭连接
-    onRecv($conn);
+    // onRecv($conn);
+    http_protocol_handle($conn);
 }
-
-echo 'bye';
 
 
 // 关闭socket
 socket_close($socket);
+
+function http_protocol_handle($conn) {
+    // 读取请求数据
+    $buffer = socket_read($conn, 1024);
+    if (strpos($buffer, '/favicon.ico')) {
+        // 关闭连接
+        socket_write($conn, '');
+        socket_close($conn);
+        return;
+    }
+    echo "http 请求体原始数据.\n";
+    var_dump($buffer);
+    
+    // 解析http请求体
+    $httpData = parse_http_protocol($buffer);
+    var_dump($httpData);
+    
+    // 构建uri处理业务逻辑
+    $filename = ltrim($httpData['request_uri'], '/');
+    $filename = (!file_exists('./' . $filename) || !$filename)
+                    ? './404.html'
+                    : './' . $filename;
+    
+    // 构建http响应体
+    $resopnse = build_http_protocol_res(file_get_contents($filename));
+    echo "http 响应体.\n";
+    var_dump($resopnse);
+    
+    // 返回给客户端
+    socket_write($conn, $resopnse);
+    
+    // 关闭连接
+    socket_close($conn);
+}
 
 /**
  * 解析客户端消息
@@ -63,6 +102,9 @@ socket_close($socket);
  */
 function onRecv($conn)
 {
+    socket_write($conn, "hello client {$conn}\n");
+    echo "waiting to receive data\n";
+    
     //实际接收到的消息
     $recv = '';
     
